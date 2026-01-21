@@ -46,9 +46,16 @@ This project demonstrates how to build a voice assistant using [LiveKit Agents](
    - Fill in all required API keys in `.env.local` (see example file for variables).
 
 4. **Run the agent:**
+
    ```bash
    node src/agent.js dev
    ```
+
+5. **Test your agent:**
+   - Go to [LiveKit Agents Playground](https://agents-playground.livekit.io/).
+   - Log in with your LiveKit account.
+   - Make sure your project API keys are set up correctly in `.env.local`.
+   - You should now be able to connect and interact with your running agent from the web interface.
 
 ### Scripts
 
