@@ -116,7 +116,7 @@ class SpeechmaticsSpeechStream extends stt.SpeechStream {
         // End of input - send EndOfStream
         console.log('[Speechmatics] Input stream ended, sending EndOfStream');
         if (this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify({ message: 'EndOfStream' }));
+            // this.ws.send(JSON.stringify({ message: 'EndOfStream' }));
 
             this.queue.put({
                 type: stt.SpeechEventType.END_OF_SPEECH,

@@ -17,7 +17,7 @@ dotenv.config({ path: '.env.local' });
 class Assistant extends voice.Agent {
     constructor() {
         super({
-            instructions: `You are a helpful voice assistant appearing to speak Hebrew.`,
+            instructions: `You are a helpful voice assistant appearing to speak Hebrew. or english.`,
         });
     }
 }
@@ -30,7 +30,8 @@ export default defineAgent({
             // 1. Custom Soniox STT
             stt: new SpeechmaticsSTT({
                 apiKey: process.env.SPEECHMATIC_API_KEY,
-                language: 'he',
+                // language: 'he',
+                language: 'en',
             }),
             // 2. OpenAI LLM
             llm: new openai.LLM({
@@ -39,15 +40,17 @@ export default defineAgent({
             // 3. Cartesia TTS
             tts: new cartesia.TTS({
                 model: 'sonic-3',
-                voice: '1daba551-67af-465e-a189-f91495aa2347',
-                language: 'he',
+                // voice: '1daba551-67af-465e-a189-f91495aa2347', //hebrew female
+                voice: 'a0e99841-438c-4a64-b679-ae501e7d6091',  // English female voice
+                // language: 'he',
+                language: 'en',
             }),
         });
         await session.start({
             agent: new Assistant(),
             room: ctx.room,
         });
-        await session.say("שלום! איך אני יכול לעזור לך היום?", { allowInterruptions: true });
+        await session.say(`hello, how can I assist you today`, { allowInterruptions: true });
         await ctx.connect();
     },
 });
