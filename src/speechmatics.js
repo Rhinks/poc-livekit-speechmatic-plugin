@@ -54,7 +54,6 @@ class SpeechmaticsSpeechStream extends stt.SpeechStream {
         this.ws.onerror = (err) => {
             console.error('[Speechmatics] WebSocket error:', err.message);
         };
-
         // Send StartRecognition message
         const startRecognition = {
             message: 'StartRecognition',
@@ -66,7 +65,8 @@ class SpeechmaticsSpeechStream extends stt.SpeechStream {
             transcription_config: {
                 language: this.language,
                 enable_partials: true,
-                max_delay: 1.0,  // Lower latency
+                max_delay: 2.5,
+                operating_point: "enhanced"
             }
         };
 
@@ -107,16 +107,13 @@ class SpeechmaticsSpeechStream extends stt.SpeechStream {
             if (this.ws.readyState === WebSocket.OPEN) {
                 this.ws.send(audioData);
                 frameCount++;
-                if (frameCount % 100 === 0) {
-                    console.log('[Speechmatics] Sent', frameCount, 'audio frames');
-                }
             }
         }
 
         // End of input - send EndOfStream
         console.log('[Speechmatics] Input stream ended, sending EndOfStream');
         if (this.ws.readyState === WebSocket.OPEN) {
-            // this.ws.send(JSON.stringify({ message: 'EndOfStream' }));
+            this.ws.send(JSON.stringify({ message: 'EndOfStream' }));
 
             this.queue.put({
                 type: stt.SpeechEventType.END_OF_SPEECH,
@@ -140,7 +137,6 @@ class SpeechmaticsSpeechStream extends stt.SpeechStream {
 
     _handleMessage(msg) {
         const messageType = msg.message;
-        console.log('[Speechmatics] Message type:', messageType);
 
         switch (messageType) {
             case 'RecognitionStarted':
@@ -183,6 +179,16 @@ class SpeechmaticsSpeechStream extends stt.SpeechStream {
                 const finalText = msg.metadata?.transcript || '';
                 if (finalText.trim().length > 0) {
                     console.log('[Speechmatics] FINAL transcript:', finalText);
+                    const cleanText = finalText.replace(/[^\w\u0590-\u05FF]/g, '').trim();
+                    if (cleanText.length < 2) {
+                        break; // Skip this transcript
+                    }
+
+                    const noisePatterns = /^[\.\?\!]+$|^(um|uh|ah|sa|hmm)$/i;
+                    if (noisePatterns.test(finalText.trim())) {
+                        console.log('[Speechmatics] Skipping noise pattern:', finalText);
+                        break;
+                    }
                     this.queue.put({
                         type: stt.SpeechEventType.FINAL_TRANSCRIPT,
                         alternatives: [{
@@ -209,7 +215,7 @@ class SpeechmaticsSpeechStream extends stt.SpeechStream {
                 break;
 
             case 'Info':
-                console.log('[Speechmatics] Info:', msg.type, msg.message);
+                // Silently ignore info messages
                 break;
 
             default:
